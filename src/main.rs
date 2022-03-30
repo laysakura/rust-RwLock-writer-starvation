@@ -1,8 +1,7 @@
-use std::{
-    process::exit,
-    sync::{Arc, RwLock},
-    thread,
-};
+use std::{process::exit, sync::Arc, thread};
+
+//use std::sync::RwLock;  // cause writer starvation
+use parking_lot::RwLock; // solves writer starvation!
 
 fn reader_loop(lock: &RwLock<()>) {
     loop {
@@ -11,7 +10,9 @@ fn reader_loop(lock: &RwLock<()>) {
 }
 
 fn writer_exit(lock: &RwLock<()>) {
-    let _guard = lock.write().unwrap();
+    // let _guard = lock.write().unwrap();
+    let _guard = lock.write(); // parking_lot does not return Result type (remove `.unwrap()`).
+
     eprintln!("writer: exit");
     exit(0);
 }
